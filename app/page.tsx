@@ -2,29 +2,14 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-
-type Kitchen = {
-  kitchenName: string;
-  kitchenId: number;
-  address: string;
-  city: string;
-  email: string;
-  phone: string;
-  info: string;
-  menuTypes: any[];
-};
-
-type Customer = {
-  customerId: string;
-  kitchens: Kitchen[];
-};
+import { Customer, Kitchen } from "./interfaces";
 
 export default function Home() {
   const [jamixCustomerId, setJamixCustomerId] = useState<Number>();
   const [selectedKitchen, setSelectedKitchen] = useState<Number>();
   const [allKitchens, setAllKitchens] = useState<Customer[]>();
   const [input, setInput] = useState("");
-  const [searchSuggestions, setSearchSuggestions] = useState<Kitchen[]>();
+  const [searchSuggestions, setSearchSuggestions] = useState<any>();
 
   const filterKitchensByName = (
     data: Customer[],
