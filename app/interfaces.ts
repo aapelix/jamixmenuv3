@@ -1,4 +1,4 @@
-type Kitchen = {
+export type Kitchen = {
   kitchenName: string;
   kitchenId: number;
   address: string;
@@ -9,7 +9,7 @@ type Kitchen = {
   menuTypes: any[];
 };
 
-type Customer = {
+export type Customer = {
   customerId: string;
   kitchens: Kitchen[];
 };

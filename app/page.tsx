@@ -2,7 +2,22 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Customer, Kitchen } from "./interfaces";
+
+type Kitchen = {
+  kitchenName: string;
+  kitchenId: number;
+  address: string;
+  city: string;
+  email: string;
+  phone: string;
+  info: string;
+  menuTypes: any[];
+};
+
+type Customer = {
+  customerId: string;
+  kitchens: Kitchen[];
+};
 
 export default function Home() {
   const [jamixCustomerId, setJamixCustomerId] = useState<Number>();
