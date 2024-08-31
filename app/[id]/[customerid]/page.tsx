@@ -43,7 +43,7 @@ const IngredientPopup = ({ item, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-[#0a0a0a] p-6 rounded shadow-lg w-1/2 max-w-lg">
+      <div className="bg-[#0a0a0a] p-6 rounded shadow-lg lg:w-1/2 w-full mx-5 max-w-lg">
         <h2 className="text-xl font-bold mb-4">{item.name}</h2>
         <div
           className="text-zinc-400"
@@ -53,7 +53,7 @@ const IngredientPopup = ({ item, onClose }) => {
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
           onClick={onClose}
         >
-          Close
+          Sulje
         </button>
       </div>
     </div>

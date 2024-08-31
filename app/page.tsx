@@ -53,12 +53,16 @@ export default function Home() {
       {allKitchens && (
         <div className="lg:w-2/4 w-full lg:ml-0 mx-10 mt-24">
           <h1 className="text-5xl font-black">Hyvää aamupäivää</h1>
-          <p className="mt-2 text-zinc-300 w-2/3">
+          <p className="mt-2 text-zinc-300 w-2/3 lg:block hidden">
             Tämä nettisivu
             <a href="jamix.aapelix.dev"> (jamix.aapelix.dev</a> tai JamixMenuv3)
             on uudempi (parempi) versio jamixmenu.com sovelluksesta, jonka
             tarkoituksena on olla netistä löytyvä ruokalista, joka sisältää
             erittäin monen suomalaisen koulun jokapäivän ruokalistan.
+          </p>
+
+          <p className="mt-2 text-zinc-300 w-2/3 lg:hidden block">
+            Tämä netti sivu on vasta beta-vaiheessa!
           </p>
 
           <input
