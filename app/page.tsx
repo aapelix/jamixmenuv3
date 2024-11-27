@@ -108,7 +108,7 @@ export default function Home() {
           </p>
 
           <p className="mt-2 text-zinc-300 w-2/3 lg:hidden block">
-            Tämä netti sivu on vasta beta-vaiheessa!
+            Tämä nettisivu on vasta beta-vaiheessa!
           </p>
 
           {starredKitchens.length > 0 && (
