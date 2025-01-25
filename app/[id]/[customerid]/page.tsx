@@ -162,7 +162,7 @@ export default function Id() {
                 ))}
                 
                 <div className="text-center text-muted-foreground mt-10">
-                  <p>made with ♥ by aapelix</p>
+                  <p>made with uranium by aapelix</p>
                   <div className="space-x-4">
                     <Link href="https://github.com/aapelix/jamixmenuv3" className="hover:underline">Source code</Link>
                     <Link href="https://buymeacoffee.com/aapelix" className="hover:underline">Support</Link>
