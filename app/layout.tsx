@@ -77,27 +77,20 @@ export default function RootLayout({
                   <Label htmlFor="dark-theme">Tumma teema?</Label>
                 </div>
                 <DropdownMenuSeparator  />
-                <DropdownMenuItem onClick={() => handleThemeChange("theme-zinc-dark")}>
-                  Sinkki
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleThemeChange("theme-red-dark")}>
-                  Punainen
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleThemeChange("theme-green-dark")}>
-                  Vihreä
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleThemeChange("theme-orange-dark")}>
-                  Oranssi
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleThemeChange("theme-rose-dark")}>
-                  Pinkki
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleThemeChange("theme-purple-dark")}>
-                  Violetti
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleThemeChange("theme-blue-dark")}>
-                  Sininen
-                </DropdownMenuItem>
+                {[
+                  { theme: "zinc", name: "Harmaa" },
+                  { theme: "red", name: "Punainen" },
+                  { theme: "green", name: "Vihreä" },
+                  { theme: "orange", name: "Oranssi" },
+                  { theme: "rose", name: "Pinkki" },
+                  { theme: "purple", name: "Violetti" },
+                  { theme: "blue", name: "Sininen" },
+                ].map(({ theme, name }) => (
+                  <DropdownMenuItem key={theme} onClick={() => handleThemeChange("theme-" + theme + (isDark ? "-dark" : ""))}>
+                  <div className={`w-4 h-4 bg-${theme}-500 rounded-full`} />
+                  {name}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
             </div>
