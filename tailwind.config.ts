@@ -7,6 +7,23 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: [
+    'theme-red-dark',
+    'theme-green-dark',
+    'theme-zinc-dark',
+    'theme-blue-dark',
+    'theme-purple-dark',
+    'theme-orange-dark',
+    'theme-rose-dark',
+    
+	'theme-red',
+  	'theme-green',
+  	'theme-zinc',
+  	'theme-blue',
+  	'theme-purple',
+  	'theme-orange',
+  	'theme-rose',
+  ],
   theme: {
   	extend: {
   		backgroundImage: {
