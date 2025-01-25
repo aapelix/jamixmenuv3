@@ -1,17 +1,20 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Customer, Kitchen } from "./interfaces";
 import { Star, StarOff } from "lucide-react";
 import TodaysMenu from "./TodaysMenu";
 import { AnimatePresence, motion } from "motion/react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-const findKitchenName = (
+const findKitchenData = (
   allKitchens: Customer[],
   customerId: string,
   kitchenId: string
-): string | undefined => {
+): Kitchen | undefined => {
   const customer = allKitchens?.find(
     (customer) => customer.customerId === customerId
   );
@@ -20,12 +23,10 @@ const findKitchenName = (
     (kitchen) => kitchen.kitchenId.toString() === kitchenId
   );
 
-  return kitchen?.kitchenName;
+  return kitchen ?? undefined;
 };
 
 export default function Home() {
-  const [jamixCustomerId, setJamixCustomerId] = useState<Number>();
-  const [selectedKitchen, setSelectedKitchen] = useState<Number>();
   const [allKitchens, setAllKitchens] = useState<Customer[]>();
   const [input, setInput] = useState("");
   const [searchSuggestions, setSearchSuggestions] = useState<any>();
@@ -95,13 +96,20 @@ export default function Home() {
   }, [input, allKitchens]);
 
   return (
-    <motion.main initial={{ opacity: 0, y: 20 }} 
-                 animate={{ opacity: 1, y: 0 }} 
-                 transition={{ duration: 0.5 }} 
-                 className="w-full h-full flex justify-center">
+    <motion.main 
+      initial={{ opacity: 0, y: 20 }}       
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ duration: 0.5 }} 
+      className="w-full h-full flex justify-center"
+    >
       {allKitchens && (
         <div className="lg:w-2/4 w-full lg:ml-0 mx-10 mt-24">
-          <h1 className="text-6xl font-black bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+          <motion.h1
+            className="text-6xl font-black bg-gradient-to-r from-primary to-primary*2 bg-clip-text text-transparent"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
             {`Hyvää ${(() => {
               const hour = new Date().getHours();
               if (hour >= 5 && hour < 10) return 'aamua';
@@ -111,85 +119,135 @@ export default function Home() {
               if (hour >= 17 && hour < 23) return 'iltaa';
               return 'yötä';
             })()}`}
-          </h1>
-          <p className="mt-4 text-zinc-300 w-2/3 lg:block hidden leading-relaxed">
+          </motion.h1>
+
+          <p className="mt-4 text-muted-foreground w-2/3 lg:block hidden leading-relaxed">
             Tämä nettisivu
-            (<a href="https://jamix.aapelix.dev" className="text-blue-400 hover:text-blue-500 transition-colors duration-300">jamix.aapelix.dev</a> tai JamixMenuV3)
+            (<a href="https://jamix.aapelix.dev" className="text-primary hover:text-primary/20 transition-colors duration-300">jamix.aapelix.dev</a> tai JamixMenuV3)
             on uudempi (parempi) versio jamixmenu.com sovelluksesta, jonka
             tarkoituksena on olla netistä löytyvä ruokalista, joka sisältää
             monen suomalaisen koulun (ja muun) jokapäivän ruokalistan.
           </p>
 
-          <p className="mt-4 text-zinc-300 w-2/3 lg:hidden block leading-relaxed">
+          <p className="mt-4 text-muted-foreground w-2/3 lg:hidden block leading-relaxed">
             Tämä nettisivu on vasta beta-vaiheessa!
           </p>
 
           {starredKitchens.length > 0 && (
-            <div className="flex flex-wrap gap-3 mt-8">
-              {starredKitchens.map((starred, index) => (
-                <a href={`/${starred.kitchenId}/${starred.customerId}/`} 
-                   className="w-44 h-44 bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/10 rounded-2xl p-4 relative hover:scale-105 duration-300" 
-                   key={index}>
-                  <h1 className="font-bold text-blue-400">{findKitchenName(allKitchens, starred.customerId, starred.kitchenId)}</h1>
-                  <TodaysMenu customerId={starred.customerId} kitchenId={starred.kitchenId} />
-                </a>
-              ))}
-            </div>
-          )}
+  <motion.div
+    className="flex flex-col gap-3 mt-8"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.5 }}
+  >
+    {starredKitchens.map((starred, index) => (
+      <motion.div
+        key={index}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1, duration: 0.5 }}
+      >
+        <Link href={`/${starred.kitchenId}/${starred.customerId}/`} passHref>
+          <Card className="hover:scale-105 duration-300 cursor-pointer">
+            <CardHeader>
+              <CardTitle>
+                {findKitchenData(allKitchens, starred.customerId, starred.kitchenId).kitchenName}
+              </CardTitle>
+              <CardDescription>
+                {findKitchenData(allKitchens, starred.customerId, starred.kitchenId).info}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative">
+              <TodaysMenu customerId={starred.customerId} kitchenId={starred.kitchenId} />
+              <Button
+                className="absolute bottom-2 right-2"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleStarred(starred.kitchenId, starred.customerId);
+                }}
+              >
+                <StarOff />
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+      </motion.div>
+    ))}
+  </motion.div>
+)}
 
-          <input
-            type="search"
-            autoComplete="false"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Hae keittiöitä"
-            className="mt-8 p-3 px-6 rounded-2xl bg-[#1a1a1a] border border-white/10 focus:text-white w-56 placeholder:text-gray-400 lg:focus:w-96 focus:w-60 duration-300 focus:bg-[#252525] focus:placeholder:text-zinc-500 outline-none"
-          />
 
-          <AnimatePresence>
-            {searchSuggestions && input.length > 0 && (
-              <motion.ul
-                className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/10 mt-3 px-5 p-4 rounded-2xl"
-                initial={{ opacity: 0, y: -10 }}
+
+<motion.div
+  className="relative mt-8"
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.5 }}
+>
+  <Input
+    type="search"
+    autoComplete="false"
+    value={input}
+    onChange={(e) => setInput(e.target.value)}
+    placeholder={`Hae ${allKitchens.length} keittiöstä`}
+    className="p-3 px-6 w-56 focus:w-96 duration-300"
+  />
+</motion.div>
+
+
+{searchSuggestions && input.length > 0 && (
+  <motion.div
+    className="mt-4 pt-4 text-muted-foreground shadow-lg"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.4 }}
+  >
+    <Card>
+      <CardContent>
+        <ul>
+          {searchSuggestions?.map((kitchen: Customer, index: number) => {
+            const isStarred = starredKitchens.some(
+              (entry) =>
+                entry.kitchenId === kitchen.kitchens[0].kitchenId.toString() &&
+                entry.customerId === kitchen.customerId
+            );
+
+            return (
+              <motion.li
+                className="flex justify-between items-center mt-2 p-3 rounded-lg bg-border/10"
+                key={kitchen.kitchens[0].kitchenId}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <AnimatePresence>
-                  {searchSuggestions?.map((kitchen: Customer, index: number) => {
-                    const isStarred = starredKitchens.some(
-                      (entry) => entry.kitchenId === kitchen.kitchens[0].kitchenId.toString() && entry.customerId === kitchen.customerId,
-                    );
+                <Link
+                  className="hover:font-bold duration-300"
+                  href={`/${kitchen.kitchens[0].kitchenId}/${kitchen.customerId}/`}
+                >
+                  {kitchen.kitchens[0].kitchenName}
+                </Link>
 
-                    return (
-                      <motion.li className="flex justify-between items-center mt-1"
-                        key={kitchen.kitchens[0].kitchenId}
-                        >
-                        <a
-                          className="hover:font-bold duration-300"
-                          href={
-                            "/" +
-                            kitchen.kitchens[0].kitchenId +
-                            "/" +
-                            kitchen.customerId +
-                            "/"
-                          }
-                        >
-                          {kitchen.kitchens[0].kitchenName}
-                        </a>
+                <Button
+                  variant="ghost"
+                  className="hover:scale-110 duration-300"
+                  onClick={() => {
+                    toggleStarred(kitchen.kitchens[0].kitchenId.toString(), kitchen.customerId);
+                  }}
+                >
+                  {isStarred ? <StarOff className="text-primary" /> : <Star />}
+                </Button>
+              </motion.li>
+            );
+          })}
+        </ul>
+      </CardContent>
+    </Card>
+  </motion.div>
+)}
 
-                        <button className="hover:scale-110 duration-300" onClick={() => {
-                          toggleStarred(kitchen.kitchens[0].kitchenId.toString(), kitchen.customerId)
-                        }}>
-                          {isStarred ? <StarOff /> : <Star />}
-                        </button>
-                      </motion.li>
-                    );
-                  })}
-                </AnimatePresence>
-              </motion.ul>
-            )}
-          </AnimatePresence>
+
+
         </div>
       )}
     </motion.main>
