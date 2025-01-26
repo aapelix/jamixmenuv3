@@ -53,7 +53,9 @@ export default function Id() {
 
     const menuDays = data[0]?.menuTypes[0]?.menus[0]?.days || [];
     if (menuDays.length > 1) {
-      setSelectedDate(menuDays[new Date().getDay() === 1 ? 0 : 1].date.toString());
+      setSelectedDate(
+        menuDays[[1, 0, 6].includes(new Date().getDay()) ? 0 : 1].date.toString()
+      );
     }
   };
 
