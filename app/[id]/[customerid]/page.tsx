@@ -43,19 +43,27 @@ export default function Id() {
   const [popupItem, setPopupItem] = useState(null);
   const [slideDirection, setSlideDirection] = useState("right");
   const [dayLimit, setDayLimit] = useState(7);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchKitchenData = async () => {
-    const res = await fetch(
-      `https://fi.jamix.cloud/apps/menuservice/rest/haku/menu/${customerid}/${id}?lang=fi`,
-    );
-    const data = await res.json();
-    setKitchenData(data);
-
-    const menuDays = data[0]?.menuTypes[0]?.menus[0]?.days || [];
-    if (menuDays.length > 1) {
-      setSelectedDate(
-        menuDays[[1, 0, 6].includes(new Date().getDay()) ? 0 : 1].date.toString()
+    setIsLoading(true);
+    try {
+      const res = await fetch(
+        `https://fi.jamix.cloud/apps/menuservice/rest/haku/menu/${customerid}/${id}?lang=fi`,
       );
+      const data = await res.json();
+      setKitchenData(data);
+
+      const menuDays = data[0]?.menuTypes[0]?.menus[0]?.days || [];
+      if (menuDays.length > 1) {
+        setSelectedDate(
+          menuDays[[1, 0, 6].includes(new Date().getDay()) ? 0 : 1].date.toString()
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setTimeout(() => setIsLoading(false), 500);
     }
   };
 
@@ -77,6 +85,26 @@ export default function Id() {
     center: { x: 0, opacity: 1 },
     exit: (direction) => ({ x: direction === "right" ? -500 : 500, opacity: 0 }),
   };
+
+  const LoadingCard = () => (
+    <Card className="mb-6 backdrop-blur-sm bg-card/50 border border-primary/10">
+      <CardHeader>
+        <div className="h-6 w-32 bg-primary/10 rounded animate-pulse" />
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-4">
+          {[1, 2, 3].map((index) => (
+            <li key={index} className="flex justify-between items-center p-2">
+              <div className="flex-1">
+                <div className="h-5 w-48 bg-primary/10 rounded animate-pulse" />
+              </div>
+              <div className="h-8 w-8 bg-primary/10 rounded animate-pulse" />
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <motion.main 
@@ -146,90 +174,83 @@ export default function Id() {
 
         <div className="relative mt-12 min-h-[400px]">
           <AnimatePresence mode="wait" custom={slideDirection}>
-            {selectedMenu && (
-              <motion.div
-                key={selectedMenu.date}
-                className="absolute top-0 left-0 w-full"
-                custom={slideDirection}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-3xl font-bold mb-8 text-primary/80">
-                  {betterFormatDate(selectedMenu.date)}
-                </h2>
-                
-                {selectedMenu.mealoptions.map((mealOption, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Card className="mb-6 backdrop-blur-sm bg-card/50 border border-primary/10 hover:border-primary/20 transition-all duration-300">
-                      <CardHeader>
-                        <CardTitle className="text-xl text-primary">
-                          {mealOption.name}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-4">
-                          {mealOption.menuItems.map((item, itemIndex) => (
-                            <motion.li 
-                              key={itemIndex}
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: itemIndex * 0.05 }}
-                              className="flex justify-between items-center p-2 rounded-lg hover:bg-primary/5 transition-colors duration-200"
-                            >
-                              <span className="flex-1">
-                                <span className="font-medium">{item.name}</span>
-                                <span className="text-sm text-muted-foreground ml-2">
-                                  {item.portionSize}g
-                                </span>
-                              </span>
-                              <Button 
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setPopupItem(item)}
-                                className="hover:bg-primary/10 transition-colors duration-200"
-                              >
-                                <CookingPot className="w-4 h-4" />
-                              </Button>
-                            </motion.li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-                
-                <motion.footer
-                  className="text-center text-muted-foreground mt-16 pt-8 border-t border-primary/10"
+          {selectedMenu && !isLoading ? (
+            <motion.div
+              key={selectedMenu.date}
+              className="absolute top-0 left-0 w-full"
+              custom={slideDirection}
+              variants={selectedDate === menuDays[0]?.date.toString() ? {
+                enter: { opacity: 0 },
+                center: { opacity: 1 },
+                exit: (direction) => ({ x: direction === "right" ? -500 : 500, opacity: 0 })
+              } : slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.5 }}
+            >
+              <h2 className="text-3xl font-bold mb-8 text-primary/80">
+                {betterFormatDate(selectedMenu.date)}
+              </h2>
+              
+              {selectedMenu.mealoptions.map((mealOption, index) => (
+                <motion.div
+                  key={index}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: index * 0.1 }}
                 >
-                  <p className="mb-4">made with uranium by aapelix</p>
-                  <div className="space-x-6">
-                    <Link 
-                      href="https://github.com/aapelix/jamixmenuv3" 
-                      className="text-primary/60 hover:text-primary transition-colors duration-200"
-                    >
-                      Source code
-                    </Link>
-                    <Link 
-                      href="https://buymeacoffee.com/aapelix" 
-                      className="text-primary/60 hover:text-primary transition-colors duration-200"
-                    >
-                      Support
-                    </Link>
-                  </div>
-                </motion.footer>
-              </motion.div>
-            )}
+                  <Card className="mb-6 backdrop-blur-sm bg-card/50 border border-primary/10 hover:border-primary/20 transition-all duration-300">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-primary">
+                        {mealOption.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-4">
+                        {mealOption.menuItems.map((item, itemIndex) => (
+                          <motion.li 
+                            key={itemIndex}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: itemIndex * 0.05 }}
+                            className="flex justify-between items-center p-2 rounded-lg hover:bg-primary/5 transition-colors duration-200"
+                          >
+                            <span className="flex-1">
+                              <span className="font-medium">{item.name}</span>
+                              <span className="text-sm text-muted-foreground ml-2">
+                                {item.portionSize}g
+                              </span>
+                            </span>
+                            <Button 
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setPopupItem(item)}
+                              className="hover:bg-primary/10 transition-colors duration-200"
+                            >
+                              <CookingPot className="w-4 h-4" />
+                            </Button>
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="h-8 w-48 bg-primary/10 rounded animate-pulse mb-8" />
+              {[1, 2].map((index) => (
+                <LoadingCard key={index} />
+              ))}
+            </motion.div>
+          )}
           </AnimatePresence>
         </div>
 

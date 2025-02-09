@@ -26,11 +26,89 @@ const findKitchenData = (
   return kitchen ?? undefined;
 };
 
+interface SearchResult {
+  customerId: string;
+  kitchenId: string;
+  kitchenName: string;
+  info: string;
+  matchType: 'name' | 'info' | 'partial';
+  matchScore: number;
+}
+
+const normalizeText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+};
+
+const calculateMatchScore = (
+  searchTerm: string,
+  kitchenName: string,
+  info: string
+): number => {
+  const normalizedSearch = normalizeText(searchTerm);
+  const normalizedName = normalizeText(kitchenName);
+  const normalizedInfo = normalizeText(info);
+
+  if (normalizedName === normalizedSearch) return 1;
+  
+  if (normalizedName.startsWith(normalizedSearch)) return 0.8;
+  
+  const nameWords = normalizedName.split(' ');
+  if (nameWords.some(word => word === normalizedSearch)) return 0.7;
+  if (nameWords.some(word => word.startsWith(normalizedSearch))) return 0.6;
+  
+  if (normalizedName.includes(normalizedSearch)) return 0.5;
+  
+  if (normalizedInfo.includes(normalizedSearch)) return 0.3;
+  
+  return 0;
+};
+
+const searchKitchens = (
+  allKitchens: Customer[],
+  searchTerm: string,
+  maxResults: number = 10
+): SearchResult[] => {
+  if (!searchTerm) return [];
+
+  const results: SearchResult[] = [];
+
+  allKitchens.forEach((customer) => {
+    customer.kitchens.forEach((kitchen) => {
+      const matchScore = calculateMatchScore(
+        searchTerm,
+        kitchen.kitchenName,
+        kitchen.info
+      );
+
+      if (matchScore > 0) {
+        results.push({
+          customerId: customer.customerId,
+          kitchenId: kitchen.kitchenId.toString(),
+          kitchenName: kitchen.kitchenName,
+          info: kitchen.info,
+          matchType: matchScore >= 0.7 ? 'name' : matchScore >= 0.5 ? 'partial' : 'info',
+          matchScore
+        });
+      }
+    });
+  });
+
+  return results
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, maxResults);
+};
+
+
 export default function Home() {
   const [allKitchens, setAllKitchens] = useState<Customer[]>();
   const [input, setInput] = useState("");
-  const [searchSuggestions, setSearchSuggestions] = useState<any>();
   const [starredKitchens, setStarredKitchens] = useState<{ kitchenId: string; customerId: string }[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
 
   const filterKitchensByName = (
@@ -84,15 +162,26 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (input && allKitchens) {
-      const filteredCustomers = allKitchens.filter((customer) =>
-        customer.kitchens[0].kitchenName
-          .toLowerCase()
-          .startsWith(input.toLowerCase()),
-      );
+    const handleSearch = () => {
+      setIsSearching(true);
+      
+      if (!input || !allKitchens) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
 
-      setSearchSuggestions(filteredCustomers);
-    }
+      // Debounce search for better performance
+      const timeoutId = setTimeout(() => {
+        const results = searchKitchens(allKitchens, input);
+        setSearchResults(results);
+        setIsSearching(false);
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
+    };
+
+    handleSearch();
   }, [input, allKitchens]);
 
   return (
@@ -152,9 +241,8 @@ export default function Home() {
 
           <AnimatePresence>
             {starredKitchens.length > 0 && starredKitchens.length > 0 && (
-              <div className="flex justify-center">
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 justify-center"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 place-content-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -168,7 +256,7 @@ export default function Home() {
         transition={{ delay: index * 0.1 }}
       >
         <Link href={`/${starred.kitchenId}/${starred.customerId}/`}>
-          <Card className="h-full relative flex flex-col justify-between transform hover:scale-102 transition-all duration-300 hover:shadow-lg bg-card/50 backdrop-blur-sm border border-primary/10">
+          <Card className="h-full relative justify-self-center flex flex-col justify-between transform hover:scale-102 transition-all duration-300 hover:shadow-lg bg-card/50 backdrop-blur-sm border border-primary/10">
             <CardHeader>
               <CardTitle className="text-xl text-primary">
                 {findKitchenData(allKitchens, starred.customerId, starred.kitchenId).kitchenName}
@@ -197,61 +285,67 @@ export default function Home() {
       </motion.div>
     ))}
   </motion.div>
-  </div>
 )
 }
 
-            {searchSuggestions && input.length > 0 && (
-              <motion.div
-                className="max-w-xl mx-auto"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-                <Card className="backdrop-blur-sm bg-card/50 border border-primary/10">
-                  <CardContent className="p-4">
-                    <ul className="space-y-2">
-                      {searchSuggestions?.map((kitchen: Customer) => {
-                        const isStarred = starredKitchens.some(
-                          (entry) =>
-                            entry.kitchenId === kitchen.kitchens[0].kitchenId.toString() &&
-                            entry.customerId === kitchen.customerId
-                        );
+{searchResults.length > 0 && input.length > 0 && (
+      <motion.div
+        className="max-w-xl mx-auto"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+      >
+        <Card className="backdrop-blur-sm bg-card/50 border border-primary/10">
+          <CardContent className="p-4">
+            <ul className="space-y-2">
+              {searchResults.map((result) => {
+                const isStarred = starredKitchens.some(
+                  (entry) =>
+                    entry.kitchenId === result.kitchenId &&
+                    entry.customerId === result.customerId
+                );
 
-                        return (
-                          <motion.li
-                            key={kitchen.kitchens[0].kitchenId}
-                            className="flex items-center justify-between p-3 rounded-xl hover:bg-primary/5 transition-colors duration-200"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                          >
-                            <Link
-                              className="flex-1 font-medium text-foreground/80 hover:text-primary transition-colors duration-200"
-                              href={`/${kitchen.kitchens[0].kitchenId}/${kitchen.customerId}/`}
-                            >
-                              {kitchen.kitchens[0].kitchenName}
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="ml-4 hover:bg-primary/10"
-                              onClick={() => toggleStarred(kitchen.kitchens[0].kitchenId.toString(), kitchen.customerId)}
-                            >
-                              {isStarred ? (
-                                <StarOff className="text-primary h-5 w-5" />
-                              ) : (
-                                <Star className="h-5 w-5" />
-                              )}
-                            </Button>
-                          </motion.li>
-                        );
-                      })}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                return (
+                  <motion.li
+                    key={`${result.kitchenId}-${result.customerId}`}
+                    className="flex flex-col p-3 rounded-xl hover:bg-primary/5 transition-colors duration-200"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <Link
+                        className="flex-1 font-medium text-foreground/80 hover:text-primary transition-colors duration-200"
+                        href={`/${result.kitchenId}/${result.customerId}/`}
+                      >
+                        {result.kitchenName}
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-4 hover:bg-primary/10"
+                        onClick={() => toggleStarred(result.kitchenId, result.customerId)}
+                      >
+                        {isStarred ? (
+                          <StarOff className="text-primary h-5 w-5" />
+                        ) : (
+                          <Star className="h-5 w-5" />
+                        )}
+                      </Button>
+                    </div>
+                    {result.matchType === 'info' && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                        {result.info}
+                      </p>
+                    )}
+                  </motion.li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      </motion.div>
+    )}
           </AnimatePresence>
         </div>
       )}
