@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CookingPot } from "lucide-react";
+import { ArrowLeft, CookingPot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,47 +80,72 @@ export default function Id() {
 
   return (
     <motion.main 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full h-full flex justify-center"
+      initial={{ opacity: 0 }}       
+      animate={{ opacity: 1 }} 
+      transition={{ duration: 0.7 }}
+      className="min-h-screen bg-gradient-to-b from-background to-background/95"
     >
-      <div className="lg:w-2/4 w-full lg:ml-0 mx-10 mt-24">
-        <Button variant="ghost" asChild className="mb-8">
-          <Link href="/">Palaa alkuun</Link>
-        </Button>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Button variant="ghost" asChild className="mb-8 group">
+            <Link href="/" className="flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              Palaa alkuun
+            </Link>
+          </Button>
+        </motion.div>
 
         {kitchen && (
-          <div>
-            <h1 className="text-6xl font-black text-primary">{kitchen.kitchenName}</h1>
-            <p className="mt-4 text-muted-foreground">{kitchen.info}</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <h1 className="text-4xl py-2 md:text-6xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              {kitchen.kitchenName}
+            </h1>
+            <p className="mt-4 text-muted-foreground text-lg">{kitchen.info}</p>
+          </motion.div>
         )}
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          {menuDays.slice(0, dayLimit).map((day) => (
-            <Button
+        <motion.div 
+          className="mt-12 flex flex-wrap gap-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          {menuDays.slice(0, dayLimit).map((day, index) => (
+            <motion.div
               key={day.date}
-              onClick={() => handleDateChange(day.date)}
-              variant={selectedDate === day.date.toString() ? "default" : "outline"}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
             >
-              {betterFormatDate(day.date)}
-            </Button>
+              <Button
+                onClick={() => handleDateChange(day.date)}
+                variant={selectedDate === day.date.toString() ? "default" : "outline"}
+                className="transition-all duration-300 hover:scale-105"
+              >
+                {betterFormatDate(day.date)}
+              </Button>
+            </motion.div>
           ))}
 
-          {dayLimit <= 7 ? (
-            <Button variant="secondary" onClick={() => setDayLimit(dayLimit + 7)}>
-              Näytä lisää
-            </Button>
-          ) : (
-            <Button variant="secondary" onClick={() => setDayLimit(dayLimit - 7)}>
-              Näytä vähemmän
-            </Button>
-          )}
-        </div>
+          <Button 
+            variant="secondary"
+            onClick={() => setDayLimit(dayLimit <= 7 ? dayLimit + 7 : dayLimit - 7)}
+            className="transition-all duration-300 hover:scale-105"
+          >
+            {dayLimit <= 7 ? "Näytä lisää" : "Näytä vähemmän"}
+          </Button>
+        </motion.div>
 
-        <div className="relative mt-10">
-          <AnimatePresence custom={slideDirection}>
+        <div className="relative mt-12 min-h-[400px]">
+          <AnimatePresence mode="wait" custom={slideDirection}>
             {selectedMenu && (
               <motion.div
                 key={selectedMenu.date}
@@ -132,44 +157,77 @@ export default function Id() {
                 exit="exit"
                 transition={{ duration: 0.5 }}
               >
-                <h2 className="text-4xl font-bold mb-6">{betterFormatDate(selectedMenu.date)}</h2>
+                <h2 className="text-3xl font-bold mb-8 text-primary/80">
+                  {betterFormatDate(selectedMenu.date)}
+                </h2>
                 
                 {selectedMenu.mealoptions.map((mealOption, index) => (
-                  <Card key={index} className="mb-4">
-                    <CardHeader>
-                      <CardTitle>{mealOption.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {mealOption.menuItems.map((item, itemIndex) => (
-                          <li 
-                            key={itemIndex} 
-                            className="flex justify-between items-center"
-                          >
-                            <span>
-                              {item.name} <span className="text-muted-foreground">- {item.portionSize}g</span>
-                            </span>
-                            <Button 
-                              size="icon" 
-                              variant="outline"
-                              onClick={() => setPopupItem(item)}
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="mb-6 backdrop-blur-sm bg-card/50 border border-primary/10 hover:border-primary/20 transition-all duration-300">
+                      <CardHeader>
+                        <CardTitle className="text-xl text-primary">
+                          {mealOption.name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-4">
+                          {mealOption.menuItems.map((item, itemIndex) => (
+                            <motion.li 
+                              key={itemIndex}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: itemIndex * 0.05 }}
+                              className="flex justify-between items-center p-2 rounded-lg hover:bg-primary/5 transition-colors duration-200"
                             >
-                              <CookingPot size={16} />
-                            </Button>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
+                              <span className="flex-1">
+                                <span className="font-medium">{item.name}</span>
+                                <span className="text-sm text-muted-foreground ml-2">
+                                  {item.portionSize}g
+                                </span>
+                              </span>
+                              <Button 
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setPopupItem(item)}
+                                className="hover:bg-primary/10 transition-colors duration-200"
+                              >
+                                <CookingPot className="w-4 h-4" />
+                              </Button>
+                            </motion.li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
                 
-                <div className="text-center text-muted-foreground mt-10">
-                  <p>made with uranium by aapelix</p>
-                  <div className="space-x-4">
-                    <Link href="https://github.com/aapelix/jamixmenuv3" className="hover:underline">Source code</Link>
-                    <Link href="https://buymeacoffee.com/aapelix" className="hover:underline">Support</Link>
+                <motion.footer
+                  className="text-center text-muted-foreground mt-16 pt-8 border-t border-primary/10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <p className="mb-4">made with uranium by aapelix</p>
+                  <div className="space-x-6">
+                    <Link 
+                      href="https://github.com/aapelix/jamixmenuv3" 
+                      className="text-primary/60 hover:text-primary transition-colors duration-200"
+                    >
+                      Source code
+                    </Link>
+                    <Link 
+                      href="https://buymeacoffee.com/aapelix" 
+                      className="text-primary/60 hover:text-primary transition-colors duration-200"
+                    >
+                      Support
+                    </Link>
                   </div>
-                </div>
+                </motion.footer>
               </motion.div>
             )}
           </AnimatePresence>
@@ -177,11 +235,14 @@ export default function Id() {
 
         <Dialog open={!!popupItem} onOpenChange={() => setPopupItem(null)}>
           {popupItem && (
-            <DialogContent>
+            <DialogContent className="backdrop-blur-md bg-background/95">
               <DialogHeader>
-                <DialogTitle>{popupItem.name}</DialogTitle>
+                <DialogTitle className="text-xl text-primary">
+                  {popupItem.name}
+                </DialogTitle>
               </DialogHeader>
               <DialogDescription 
+                className="prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: popupItem.ingredients }}
               />
             </DialogContent>
