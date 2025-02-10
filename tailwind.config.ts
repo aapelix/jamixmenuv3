@@ -15,6 +15,7 @@ const config: Config = {
     'theme-purple-dark',
     'theme-orange-dark',
     'theme-rose-dark',
+	'theme-cyan-dark',
     
 	'theme-red',
   	'theme-green',
@@ -23,6 +24,7 @@ const config: Config = {
   	'theme-purple',
   	'theme-orange',
   	'theme-rose',
+	'theme-cyan'
   ],
   theme: {
   	extend: {

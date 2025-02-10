@@ -85,6 +85,7 @@ export default function RootLayout({
                   { theme: "rose", name: "Pinkki" },
                   { theme: "purple", name: "Violetti" },
                   { theme: "blue", name: "Sininen" },
+                  {theme: "cyan", name: "Turkoosi"}
                 ].map(({ theme, name }) => (
                   <DropdownMenuItem key={theme} onClick={() => handleThemeChange("theme-" + theme + (isDark ? "-dark" : ""))}>
                   <div className={`w-4 h-4 theme-${theme}-dark bg-primary rounded-full`} />
